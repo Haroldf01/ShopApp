@@ -70,7 +70,7 @@ class Products with ChangeNotifier {
 
   Future<void> addProducts(Product product) {
     const addProductsURL =
-        'https://flutter-shop-app-dd3c0.firebaseio.com/products.json';
+        'https://flutter-shop-app-dd3c0.firebaseio.com/products';
     return http
         .post(
       addProductsURL,
@@ -92,6 +92,9 @@ class Products with ChangeNotifier {
       );
       _items.add(newProduct);
       notifyListeners();
+    }).catchError((error) {
+      print(error);
+      throw error;
     });
 
     // below statement adds the product to the start of the list.

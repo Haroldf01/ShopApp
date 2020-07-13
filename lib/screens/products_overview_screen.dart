@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../widgets/products_grid.dart';
 
-import '../widgets/badge.dart';
-import '../providers/cart.dart';
-import 'cart_screen.dart';
+import '../widgets/products_grid.dart';
+import '../providers/products.dart';
 import '../widgets/app_drawer.dart';
+import '../providers/cart.dart';
+import '../widgets/badge.dart';
+import 'cart_screen.dart';
 
 enum filterOptions {
   Favorites,
@@ -19,6 +20,40 @@ class ProductsOverviewScreen extends StatefulWidget {
 
 class _ProductsOverviewScreenState extends State<ProductsOverviewScreen> {
   var _showFavoritesOnly = false;
+  var _isInit = true;
+  var _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // NOTE: below context won't work.
+    // Important: If you add `listen: false`, you CAN use this in initState()!
+    // Important Continue: Workarounds are only needed if you don't set listen to false.
+    // Provider.of<Products>(context).fetchAndSetProducts();
+
+    // NOTE and Important: below is the hack way to do the same in initState()
+    // Future.delayed(Duration.zero).then((_) {
+    //   Provider.of<Products>(context).fetchAndSetProducts();
+    // });
+  }
+
+  // NOTE: below function runs after this widget is fully initialized BUT...
+  // NOTE CONTINUE: before the build method is ran for the first time.
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_isInit) {
+      _isLoading = true;
+      // NOTE and IMPORTANT: Here don't use async and await because...
+      // CONTINUE it will change how does this default overridden methods get called.
+      Provider.of<Products>(context).fetchAndSetProducts().then((_) {
+        setState(() {
+          _isLoading = false;
+        });
+      });
+    }
+    _isInit = false;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -67,7 +102,11 @@ class _ProductsOverviewScreenState extends State<ProductsOverviewScreen> {
         ],
       ),
       drawer: AppDrawer(),
-      body: ProductsGrid(_showFavoritesOnly),
+      body: _isLoading
+          ? Center(
+              child: CircularProgressIndicator(),
+            )
+          : ProductsGrid(_showFavoritesOnly),
     );
   }
 }

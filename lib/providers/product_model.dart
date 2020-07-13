@@ -20,15 +20,29 @@ class Product with ChangeNotifier {
     this.isFavorite = false,
   });
 
+  void _setFavoriteValue(bool newValue) {
+    isFavorite = newValue;
+    notifyListeners();
+  }
+
   Future<void> toggleFavorite() async {
-    // isFavorite = !isFavorite;
+    final oldStatus = isFavorite;
+    isFavorite = !isFavorite;
+    notifyListeners();
     final updateProductsURL =
         'https://flutter-shop-app-dd3c0.firebaseio.com/products/$id.json';
-    final response = await http.patch(updateProductsURL,
+    try {
+      final response = await http.patch(
+        updateProductsURL,
         body: json.encode({
-          'isFavorite': isFavorite = !isFavorite,
-        }));
-    print(response.body);
-    notifyListeners();
+          'isFavorite': isFavorite,
+        }),
+      );
+      if (response.statusCode >= 400) {
+        _setFavoriteValue(oldStatus);
+      }
+    } catch (error) {
+      _setFavoriteValue(oldStatus);
+    }
   }
 }

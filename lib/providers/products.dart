@@ -1,4 +1,8 @@
-import 'package:flutter/cupertino.dart';
+import 'dart:convert';
+
+import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
+
 import 'product_model.dart';
 
 class Products with ChangeNotifier {
@@ -64,18 +68,34 @@ class Products with ChangeNotifier {
 //    notifyListeners();
 //  }
 
-  void addProducts(Product product) {
-    final newProduct = Product(
-      title: product.title,
-      description: product.description,
-      price: product.price,
-      imageURL: product.imageURL,
-      id: DateTime.now().toString(),
-    );
-    _items.add(newProduct);
+  Future<void> addProducts(Product product) {
+    const addProductsURL =
+        'https://flutter-shop-app-dd3c0.firebaseio.com/products.json';
+    return http
+        .post(
+      addProductsURL,
+      body: json.encode({
+        'title': product.title,
+        'description': product.description,
+        'imageURL': product.imageURL,
+        'price': product.price,
+        'isFavorite': product.isFavorite,
+      }),
+    )
+        .then((response) {
+      final newProduct = Product(
+        title: product.title,
+        description: product.description,
+        price: product.price,
+        imageURL: product.imageURL,
+        id: json.decode(response.body)['name'],
+      );
+      _items.add(newProduct);
+      notifyListeners();
+    });
+
     // below statement adds the product to the start of the list.
     // _items.insert(0, newProduct);
-    notifyListeners();
   }
 
   void updateProduct(String id, Product newProduct) {

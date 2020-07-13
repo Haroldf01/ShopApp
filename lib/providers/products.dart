@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import '../models/http_exception.dart';
 
 import 'product_model.dart';
 
@@ -127,14 +128,45 @@ class Products with ChangeNotifier {
     // _items.insert(0, newProduct);
   }
 
-  void updateProduct(String id, Product newProduct) {
+  Future<void> updateProduct(String id, Product newProduct) async {
+    final updateProductsURL =
+        'https://flutter-shop-app-dd3c0.firebaseio.com/products/$id.json';
     final prodIndex = _items.indexWhere((prod) => prod.id == id);
-    _items[prodIndex] = newProduct;
-    notifyListeners();
+    if (prodIndex >= 0) {
+      await http.patch(
+        updateProductsURL,
+        body: json.encode(
+          {
+            'title': newProduct.title,
+            'description': newProduct.description,
+            'price': newProduct.price,
+            'imageURL': newProduct.imageURL,
+          },
+        ),
+      );
+      _items[prodIndex] = newProduct;
+      notifyListeners();
+    }
   }
 
-  void deleteProduct(String id) {
-    _items.removeWhere((prod) => prod.id == id);
+  Future<void> deleteProduct(String id) async {
+    final deleteProductURL =
+        'https://flutter-shop-app-dd3c0.firebaseio.com/products/$id.json';
+
+    // IMPORTANT: this type of deleting is known as optimistic updating.
+    // if no error so delete it completely or else repopulate the item into the list.
+    final existingProductIndex = _items.indexWhere((prod) => prod.id == id);
+    var existingProduct = _items[existingProductIndex];
+    _items.removeAt(existingProductIndex);
     notifyListeners();
+
+    final response = await http.delete(deleteProductURL);
+    if (response.statusCode >= 400) {
+      _items.insert(existingProductIndex, existingProduct);
+      notifyListeners();
+      throw HTTPException(
+          'Something went wrong. Could not delete the product.');
+    }
+    existingProduct = null;
   }
 }

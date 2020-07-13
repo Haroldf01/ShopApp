@@ -68,21 +68,23 @@ class Products with ChangeNotifier {
 //    notifyListeners();
 //  }
 
-  Future<void> addProducts(Product product) {
+  Future<void> addProducts(Product product) async {
     const addProductsURL =
-        'https://flutter-shop-app-dd3c0.firebaseio.com/products';
-    return http
-        .post(
-      addProductsURL,
-      body: json.encode({
-        'title': product.title,
-        'description': product.description,
-        'imageURL': product.imageURL,
-        'price': product.price,
-        'isFavorite': product.isFavorite,
-      }),
-    )
-        .then((response) {
+        'https://flutter-shop-app-dd3c0.firebaseio.com/products.json';
+    // NOTE: async and await is more readable and better way to write the
+    // .then and .catcherror function of the future
+    try {
+      final response = await http.post(
+        addProductsURL,
+        body: json.encode({
+          'title': product.title,
+          'description': product.description,
+          'imageURL': product.imageURL,
+          'price': product.price,
+          'isFavorite': product.isFavorite,
+        }),
+      );
+
       final newProduct = Product(
         title: product.title,
         description: product.description,
@@ -92,12 +94,12 @@ class Products with ChangeNotifier {
       );
       _items.add(newProduct);
       notifyListeners();
-    }).catchError((error) {
+    } catch (error) {
       print(error);
       throw error;
-    });
+    }
 
-    // below statement adds the product to the start of the list.
+    // NOTE: below statement adds the product to the start of the list.
     // _items.insert(0, newProduct);
   }
 

@@ -43,6 +43,9 @@ class Products with ChangeNotifier {
   ];
 
 //  var _showFavoritesOnly = false;
+  final String authToken;
+
+  Products(this.authToken, this._items);
 
   Product findById(String id) {
     return _items.firstWhere((prod) => prod.id == id);
@@ -70,8 +73,8 @@ class Products with ChangeNotifier {
 //  }
 
   Future<void> fetchAndSetProducts() async {
-    const getProductsURL =
-        'https://flutter-shop-app-dd3c0.firebaseio.com/products.json';
+    final getProductsURL =
+        'https://flutter-shop-app-dd3c0.firebaseio.com/products.json?auth=$authToken';
     try {
       final response = await http.get(getProductsURL);
       final extractedData = json.decode(response.body) as Map<String, dynamic>;
@@ -96,8 +99,8 @@ class Products with ChangeNotifier {
   }
 
   Future<void> addProducts(Product product) async {
-    const addProductsURL =
-        'https://flutter-shop-app-dd3c0.firebaseio.com/products.json';
+    final addProductsURL =
+        'https://flutter-shop-app-dd3c0.firebaseio.com/products.json?auth=$authToken';
     // NOTE: async and await is more readable and better way to write the
     // .then and .catcherror function of the future
     try {
@@ -132,7 +135,7 @@ class Products with ChangeNotifier {
 
   Future<void> updateProduct(String id, Product newProduct) async {
     final updateProductsURL =
-        'https://flutter-shop-app-dd3c0.firebaseio.com/products/$id.json';
+        'https://flutter-shop-app-dd3c0.firebaseio.com/products/$id.json?auth=$authToken';
     final prodIndex = _items.indexWhere((prod) => prod.id == id);
     if (prodIndex >= 0) {
       await http.patch(
@@ -153,7 +156,7 @@ class Products with ChangeNotifier {
 
   Future<void> deleteProduct(String id) async {
     final deleteProductURL =
-        'https://flutter-shop-app-dd3c0.firebaseio.com/products/$id.json';
+        'https://flutter-shop-app-dd3c0.firebaseio.com/products/$id.json?auth=$authToken';
 
     // IMPORTANT: this type of deleting is known as optimistic updating.
     // if no error so delete it completely or else repopulate the item into the list.

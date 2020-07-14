@@ -44,8 +44,9 @@ class Products with ChangeNotifier {
 
 //  var _showFavoritesOnly = false;
   final String authToken;
+  final String userId;
 
-  Products(this.authToken, this._items);
+  Products(this.authToken, this.userId, this._items);
 
   Product findById(String id) {
     return _items.firstWhere((prod) => prod.id == id);
@@ -72,14 +73,21 @@ class Products with ChangeNotifier {
 //    notifyListeners();
 //  }
 
-  Future<void> fetchAndSetProducts() async {
+  Future<void> fetchAndSetProducts([bool filterByUser = false]) async {
+    final filterURL = filterByUser ? 'orderBy="creatorId"&equalTo="$userId"' : '';
     final getProductsURL =
-        'https://flutter-shop-app-dd3c0.firebaseio.com/products.json?auth=$authToken';
+        'https://flutter-shop-app-dd3c0.firebaseio.com/products.json?auth=$authToken&$filterURL';
+    final getFavoritesOfIdUserURL =
+        'https://flutter-shop-app-dd3c0.firebaseio.com/userFavorites/$userId.json?auth=$authToken';
     try {
       final response = await http.get(getProductsURL);
       final extractedData = json.decode(response.body) as Map<String, dynamic>;
 
       if (extractedData == null) return;
+
+      final favoriteResponse = await http.get(getFavoritesOfIdUserURL);
+      final favoriteData = json.decode(favoriteResponse.body);
+
       final List<Product> loadedProducts = [];
       extractedData.forEach((key, prodValue) {
         loadedProducts.add(Product(
@@ -88,7 +96,7 @@ class Products with ChangeNotifier {
           description: prodValue['description'],
           price: prodValue['price'],
           imageURL: prodValue['imageURL'],
-          isFavorite: prodValue['isFavorite'],
+          isFavorite: favoriteData == null ? false : favoriteData[key] ?? false,
         ));
       });
       _items = loadedProducts;
@@ -111,7 +119,7 @@ class Products with ChangeNotifier {
           'description': product.description,
           'imageURL': product.imageURL,
           'price': product.price,
-          'isFavorite': product.isFavorite,
+          'creatorId': userId,
         }),
       );
 

@@ -51,6 +51,9 @@ class MyApp extends StatelessWidget {
             primarySwatch: Colors.purple,
             accentColor: Colors.deepOrange,
             fontFamily: 'Lato',
+            // NOTE: THis is needed if you want custom page transactions for the whole app
+            // It will override the default material app transaction
+            // pageTransitionsTheme: PageTransitionsTheme(builders: ),
           ),
           home: authData.isAuth
               ? ProductsOverviewScreen()

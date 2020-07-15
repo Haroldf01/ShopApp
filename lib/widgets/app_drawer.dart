@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../screens/user_products_screen.dart';
 import '../screens/orders_screen.dart';
+import '../helpers/custom_route.dart';
 import '../providers/auth.dart';
 
 class AppDrawer extends StatelessWidget {
@@ -23,11 +24,17 @@ class AppDrawer extends StatelessWidget {
           ),
           Divider(),
           ListTile(
-            leading: Icon(Icons.payment),
-            title: const Text('Orders'),
-            onTap: () => Navigator.of(context)
-                .pushReplacementNamed(OrdersScreen.routeName),
-          ),
+              leading: Icon(Icons.payment),
+              title: const Text('Orders'),
+              onTap: () {
+                // Navigator.of(context)
+                //   .pushReplacementNamed(OrdersScreen.routeName),
+                Navigator.of(context).pushReplacement(
+                  CustomRoute(
+                    builder: (ctx) => OrdersScreen(),
+                  ),
+                );
+              }),
           Divider(),
           ListTile(
             leading: Icon(Icons.edit),
